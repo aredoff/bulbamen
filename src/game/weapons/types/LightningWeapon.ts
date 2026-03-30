@@ -3,7 +3,7 @@ import { WeaponType } from '../../core/types';
 import { WEAPON_CONFIG } from '../../config/weapons';
 import { BaseWeapon } from '../base/BaseWeapon';
 import type { WeaponContext } from '../WeaponContext';
-import { nearestEnemy, nearestEnemyExcluding, pointOutsideRectAlongRay } from '../../utils/math';
+import { nearestEnemyExcluding, pointOutsideRectAlongRay } from '../../utils/math';
 import type { BaseEnemy } from '../../enemies/base/BaseEnemy';
 
 const FX_MS = 160;
@@ -11,6 +11,7 @@ const MUZZLE_MARGIN = 3;
 
 export class LightningWeapon extends BaseWeapon {
   private lightningFx: Phaser.Time.TimerEvent | null = null;
+  private lightningDamageTimers: Phaser.Time.TimerEvent[] = [];
 
   constructor(level = 1) {
     super(WeaponType.Lightning, WEAPON_CONFIG[WeaponType.Lightning].baseCooldownMs, level);
@@ -157,15 +158,21 @@ export class LightningWeapon extends BaseWeapon {
     this.cooldownMs = cfg.baseCooldownMs;
     if (!this.tryFire(delta, ctx.stats.effectiveAttackSpeedMult)) return;
 
-    const first = nearestEnemy(ctx.player.x, ctx.player.y, ctx.enemies);
+    const maxJumps = cfg.lightningChainMax ?? 5;
+    const range = cfg.lightningChainRange ?? 320;
+    const rangeSq = range * range;
+    const first = nearestEnemyExcluding(
+      ctx.player.x,
+      ctx.player.y,
+      ctx.enemies,
+      null,
+      rangeSq,
+    );
     if (!first) {
       this.timer += this.cooldownMs * 0.5;
       return;
     }
 
-    const maxJumps = cfg.lightningChainMax ?? 5;
-    const range = cfg.lightningChainRange ?? 320;
-    const rangeSq = range * range;
     const chain = LightningWeapon.buildChain(ctx, first as BaseEnemy, maxJumps, rangeSq);
 
     const aimAngle = Phaser.Math.Angle.Between(
@@ -177,11 +184,20 @@ export class LightningWeapon extends BaseWeapon {
 
     const dmg = this.boostDamage(cfg.damage, ctx);
     const victims = [...chain];
-    for (const e of victims) {
-      e.takeDamage(dmg);
+    for (const ev of this.lightningDamageTimers) {
+      ev.destroy();
     }
-    if (!chain.some((e) => e.active)) {
-      return;
+    this.lightningDamageTimers = [];
+    const n = victims.length;
+    const step = n > 0 ? FX_MS / n : FX_MS;
+    for (let i = 0; i < n; i++) {
+      const e = victims[i]!;
+      const delay = i * step;
+      const t = ctx.scene.time.delayedCall(delay, () => {
+        if (!e.active) return;
+        e.takeDamage(dmg);
+      });
+      this.lightningDamageTimers.push(t);
     }
 
     const g = ctx.lightningGraphics;
