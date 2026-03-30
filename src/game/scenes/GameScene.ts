@@ -49,6 +49,9 @@ export class GameScene extends Phaser.Scene {
   }
 
   create(): void {
+    this.deadEventSent = false;
+    this.spawnInterval = SPAWN_BASE_MS;
+    this.physics.resume();
     this.physics.world.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
     this.damageSystem = new DamageSystem();
     this.collision = new CollisionSystem();
