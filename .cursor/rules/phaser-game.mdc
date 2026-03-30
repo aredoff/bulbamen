@@ -1,0 +1,26 @@
+---
+description: Phaser game code — scenes, physics, weapons, enemies
+globs: src/game/**/*.ts
+alwaysApply: false
+---
+
+# Phaser / game modules
+
+## Scenes
+
+- Keys: `Preload`, `Game`, `UI`. Cross-scene signals: `this.game.events`, `this.game.registry` for HUD.
+- **New Game**: `Game` restarts; remove `game.events` listeners on `Game` shutdown if registered there (avoid duplicates).
+
+## Arcade Physics groups
+
+- `physics.add.group()` applies **default body properties** on `group.add(child)`. If the child already has velocity, **re-apply `setVelocity` after `group.add`** (player bullets, rockets, enemy bullets).
+
+## Structure
+
+- **Enemy**: `enemies/types/*` + `EnemyFactory` + `config/enemies.ts`.
+- **Weapon**: `weapons/types/*` + `WeaponFactory` + `config/weapons.ts`; starter weapon: `START_WEAPON` in `config/weapons.ts`.
+- **Upgrade**: `upgrades/types/*` + `UpgradeFactory` + `config/upgrades.ts` + weights.
+
+## Patterns
+
+- Extend `BaseEnemy` / `BaseWeapon` / `BaseUpgrade`; keep tuning in `config/` not hardcoded in types unless one-off.

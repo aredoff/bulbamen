@@ -1,0 +1,22 @@
+# Dependencies & build
+node_modules/
+dist/
+dist-ssr/
+
+# Vite cache
+.vite/
+**/.vite/
+
+# Logs & local env
+*.log
+*.local
+.env
+.env.*
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+
+# Coverage / test artifacts (if added later)
+coverage/
+*.tsbuildinfo

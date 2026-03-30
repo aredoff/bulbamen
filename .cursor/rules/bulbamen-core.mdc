@@ -1,0 +1,13 @@
+---
+description: Bulbamen project — stack, language, scope, docs
+alwaysApply: true
+---
+
+# Bulbamen (Minimal Survivors)
+
+- **Stack**: TypeScript, Phaser 3, Vite. Entry: `src/main.ts` → `game/core/GameConfig.ts`.
+- **Code** (identifiers, comments, user-facing strings in game unless localized): **English**. Respond to the user in **Russian** when they write Russian.
+- **Comments**: minimal; only where non-obvious. No changelog-style noise in code.
+- **Changes**: only what the task needs—no drive-by refactors or unrelated files. Do not add markdown/docs unless asked.
+- **Docs**: project docs live under `docs/`; do not duplicate long explanations in chat when `docs/` already covers them.
+- **Build**: after substantive TS changes, run `npm run build` to verify.
