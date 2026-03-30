@@ -1,7 +1,8 @@
 import Phaser from 'phaser';
 import type { Player } from './Player';
 
-const POINTER_DEADZONE = 18;
+/** Screen-space deadzone for touch drag direction (virtual stick). */
+const TOUCH_DRAG_DEADZONE_PX = 14;
 
 export class PlayerController {
   private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -9,6 +10,9 @@ export class PlayerController {
   private keyA?: Phaser.Input.Keyboard.Key;
   private keyS?: Phaser.Input.Keyboard.Key;
   private keyD?: Phaser.Input.Keyboard.Key;
+  private pointerWasDown = false;
+  private touchAnchorX = 0;
+  private touchAnchorY = 0;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -41,15 +45,20 @@ export class PlayerController {
     } else {
       const pointer = this.scene.input.activePointer;
       if (pointer.isDown) {
-        const dx = pointer.worldX - this.player.x;
-        const dy = pointer.worldY - this.player.y;
+        if (!this.pointerWasDown) {
+          this.touchAnchorX = pointer.x;
+          this.touchAnchorY = pointer.y;
+        }
+        const dx = pointer.x - this.touchAnchorX;
+        const dy = pointer.y - this.touchAnchorY;
         const len = Math.hypot(dx, dy);
-        if (len > POINTER_DEADZONE) {
+        if (len > TOUCH_DRAG_DEADZONE_PX) {
           vx = (dx / len) * stats.moveSpeed;
           vy = (dy / len) * stats.moveSpeed;
         }
       }
     }
+    this.pointerWasDown = this.scene.input.activePointer.isDown;
     this.player.setVelocity(vx, vy);
   }
 }
